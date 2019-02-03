@@ -1,82 +1,88 @@
 
-function calculatePosition(bounds, startLocation, commandList){
+function calculateLocation(bounds, startLocation, commandList){
 
-  let boundsArray = bounds.split(' ')
-  let x = Number(startLocation.split(' ')[0])
-  let y = Number(startLocation.split(' ')[1])
-  let direction = startLocation.split(' ')[2]
-  let currentLocation = [x,y]
+  let boundsArray = bounds.split(' ').map(Number)
+  let x = startLocation.split(' ')[0]
+  let y = startLocation.split(' ')[1]
+  let direction = startLocation.split(' ')[2].toUpperCase()
+  let currentLocation = [x, y].map(Number)
   let commandListArray = commandList.split('')
   let wentOutOfBounds = false
+  let invalidCommand = false
 
-  commandListArray.forEach( command => {
+  if(isInvalidNumberInput(currentLocation, boundsArray)) return 'Please enter the starting location and terrain bounds as numbers only'
+
+  for(let command of commandListArray){
+
+    command = command.toUpperCase()
 
     if(command === 'M'){
       currentLocation = moveRover(direction, currentLocation)
     }
-    else if(command === 'R'){
-      direction = rotateRight(direction)
+    else if(command === 'L' || command === 'R'){
+      direction = rotate(direction, command)
     }
-    else if(command === 'L'){
-      direction = rotateLeft(direction)
+    else{
+      invalidCommand = command
+      break
     }
 
-    if(isOutOfBounds(currentLocation, boundsArray) && wentOutOfBounds == false) wentOutOfBounds = true
+    if(isOutOfBounds(currentLocation, boundsArray) && wentOutOfBounds === false){
+      wentOutOfBounds = true
+      break
+    }
 
-  })
+  }
 
-  return wentOutOfBounds ? 'The rover went out of bounds' : `${currentLocation[0]} ${currentLocation[1]} ${direction}`
+  if(invalidCommand){
+    return `The following command was not understood: ${invalidCommand}`
+  }
+  else if(wentOutOfBounds){
+    return 'The rover went out of bounds'
+  }
+  else{
+    return `The final location of the rover is: ${currentLocation[0]} ${currentLocation[1]} ${direction}`
+  }
 
 }
 
-function isOutOfBounds(currentLocation, bounds){
-  return (Number(currentLocation[0]) > bounds[0] || Number(currentLocation[1]) > bounds[1])
+function isInvalidNumberInput(currentLocation, boundsArray){
+  return (isNaN(currentLocation[0]) || isNaN(currentLocation[1]) || isNaN(boundsArray[0]) || isNaN(boundsArray[1]))
 }
 
-function rotateLeft(direction){
-  if(direction == 'N'){
-    return 'W'
-  }
-  else if(direction == 'E'){
-    return 'N'
-  }
-  else if(direction == 'S'){
-    return 'E'
-  }
-  else if(direction == 'W'){
-    return 'S'
-  }
+function isOutOfBounds(currentLocation, boundsArray){
+  return currentLocation[0] > boundsArray[0] || currentLocation[1] > boundsArray[1] || currentLocation[0] < 0 || currentLocation[1] < 0
 }
 
-function rotateRight(direction){
-  if(direction == 'N'){
-    return 'E'
+function rotate(direction, rotation){
+  if(direction === 'N'){
+    return rotation === 'L' ? 'W' : 'E'
   }
-  else if(direction == 'E'){
-    return 'S'
+  else if(direction === 'E'){
+    return rotation === 'L' ? 'N' : 'S'
   }
-  else if(direction == 'S'){
-    return 'W'
+  else if(direction === 'S'){
+    return rotation === 'L' ? 'E' : 'W'
   }
-  else if(direction == 'W'){
-    return 'N'
+  else if(direction === 'W'){
+    return rotation === 'L' ? 'S' : 'N'
   }
 }
 
 function moveRover(direction, currentLocation){
-  if(direction == 'N'){
+  if(direction === 'N'){
     currentLocation[1]++
   }
-  else if(direction == 'E'){
+  else if(direction === 'E'){
     currentLocation[0]++
   }
-  else if(direction == 'S'){
+  else if(direction === 'S'){
     currentLocation[1]--
   }
-  else if(direction == 'W'){
+  else if(direction === 'W'){
     currentLocation[0]--
   }
   return currentLocation
 }
 
-module.exports = calculatePosition
+module.exports = calculateLocation
